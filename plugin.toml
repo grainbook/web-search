@@ -1,0 +1,8 @@
+name = "web-search"
+version = "0.0.1-beta1"
+description = "Multi-provider web search (Exa / Tavily / SearXNG) + URL fetch (WASM, sandboxed)"
+author = "grain"
+
+[wasm]
+module = "target/wasm32-wasip1/release/web_search_plugin.wasm"
+capabilities = ["http", "env", "log"]

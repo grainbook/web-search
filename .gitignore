@@ -1,0 +1,17 @@
+# Build output
+/target/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# macOS
+.DS_Store
+
+# The generated WASM binary (users build it themselves)
+*.wasm
+
+# Cargo component lock
+.omc/
