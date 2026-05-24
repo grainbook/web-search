@@ -20,16 +20,16 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-wasip1
+          targets: wasm32-wasip2
 
       - name: Install cargo-component
         run: cargo install cargo-component --locked
 
       - name: Cargo component check
-        run: cargo component check
+        run: cargo component check --target wasm32-wasip2
 
       - name: Cargo component clippy
-        run: cargo component clippy -- -D warnings
+        run: cargo component clippy --target wasm32-wasip2 -- -D warnings
 
   build:
     name: Build (release)
@@ -40,19 +40,19 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: wasm32-wasip1
+          targets: wasm32-wasip2
 
       - name: Install cargo-component
         run: cargo install cargo-component --locked
 
       - name: Build release
-        run: cargo component build --release
+        run: cargo component build --release --target wasm32-wasip2
 
       - name: Upload WASM artifact
         uses: actions/upload-artifact@v4
         with:
           name: web_search_plugin.wasm
-          path: target/wasm32-wasip1/release/web_search_plugin.wasm
+          path: target/wasm32-wasip2/release/web_search_plugin.wasm
           if-no-files-found: error
 
   release:
