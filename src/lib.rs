@@ -40,8 +40,7 @@ const WEB_SEARCH_SCHEMA: &str = r#"{
     "provider": {
       "type": "string",
       "enum": ["exa", "tavily", "searxng", "anysearch"],
-      "default": "exa",
-      "description": "Search provider: exa (cloud, needs EXA_API_KEY), tavily (cloud, needs TAVILY_API_KEY), searxng (self-hosted, needs SEARXNG_BASE_URL), anysearch (cloud, optional ANYSEARCH_API_KEY)."
+      "description": "Search provider. Omit to auto-select based on which credentials the host has configured (priority: exa > tavily > searxng > anysearch). exa needs EXA_API_KEY, tavily needs TAVILY_API_KEY, searxng needs SEARXNG_BASE_URL, anysearch can run anonymously (ANYSEARCH_API_KEY optional)."
     },
     "num_results": {
       "type": "integer",
@@ -482,9 +481,35 @@ fn search_anysearch(args: &SearchArgs) -> exports::grain::plugin::plugin::ToolRe
 // Dispatcher.
 
 
+/// Pick a provider based on which credentials the host has injected.
+/// Priority mirrors the schema default order: exa > tavily > searxng > anysearch.
+/// `anysearch` is the final fallback because it allows anonymous access.
+fn detect_provider() -> &'static str {
+    let has = |k: &str| host::env_get(k).map(|v| !v.is_empty()).unwrap_or(false);
+    if has("EXA_API_KEY") {
+        "exa"
+    } else if has("TAVILY_API_KEY") {
+        "tavily"
+    } else if has("SEARXNG_BASE_URL") {
+        "searxng"
+    } else {
+        "anysearch"
+    }
+}
+
 fn do_search(args: SearchArgs) -> exports::grain::plugin::plugin::ToolResult {
-    let provider = args.provider.as_deref().unwrap_or("exa");
-    match provider {
+    let provider = match args.provider.as_deref() {
+        Some(p) if !p.is_empty() => p.to_string(),
+        _ => {
+            let auto = detect_provider();
+            host::log(
+                LogLevel::Info,
+                &format!("provider auto-selected: {auto} (no explicit provider in request)"),
+            );
+            auto.to_string()
+        }
+    };
+    match provider.as_str() {
         "exa" => search_exa(&args),
         "tavily" => search_tavily(&args),
         "searxng" => search_searxng(&args),
@@ -540,7 +565,7 @@ impl exports::grain::plugin::plugin::Guest for WebSearchPlugin {
         host::log(LogLevel::Info, "web-search plugin loaded");
         Ok(exports::grain::plugin::plugin::PluginInfo {
             name: "web-search".to_string(),
-            version: "0.0.1-beta1".to_string(),
+            version: "0.0.1-beta2".to_string(),
         })
     }
 
