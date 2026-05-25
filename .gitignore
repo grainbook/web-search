@@ -10,12 +10,10 @@
 # macOS
 .DS_Store
 
-# The generated WASM binary (ignore build output, but commit the
-# pre-built release artifact at the repo root so the plugin works
-# out-of-the-box after `git clone` / `lazy_install`).
-/target/
+# WASM build artifacts — never commit binaries; users get them from
+# GitHub Releases (built by CI from tagged commits) or build locally
+# via `cargo component build --release --target wasm32-wasip2`.
 *.wasm
-!plugin.wasm
 
 # Cargo component lock
 .omc/
